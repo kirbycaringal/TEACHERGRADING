@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Management - MSEUF</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --maroon: #800000;
+            --maroon-dark: #5a0000;
+            --white: #ffffff;
+            --green: #28a745;
+            --yellow: #ffc107;
+        }
+        .text-maroon {
+            color: var(--maroon);
+        }
+        body {
+            overflow-x: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background: linear-gradient(to bottom, #800000, #4d0000);
+            min-height: 100vh;
+            padding: 20px 0;
+            width: 250px;
+            position: fixed;
+            z-index: 100;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            transition: none;
+        }
+        .sidebar a i {
+            margin-right: 0.5rem;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar a:hover {
+            background-color: #a00000;
+            color: white !important;
+        }
+        .sidebar a.active {
+            background-color: #a00000;
+        }
+        .university-name {
+            font-size: 14px;
+            line-height: 1.3;
+            padding: 0 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            color: white;
+        }
+        .sidebar-logo {
+            display: block;
+            margin: 0 auto 15px auto;
+            max-width: 80px;
+            max-height: 80px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 50%;
+            background-color: white;
+            padding: 5px;
+        }
+        
+        /* Mobile Header */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to right, #800000, #a52a2a);
+            color: white;
+            padding: 15px 20px;
+            z-index: 999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .mobile-header .header-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .mobile-header .menu-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mobile-header .header-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+            transition: all 0.3s;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: block;
+            }
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -250px;
+                width: 250px;
+                transition: left 0.3s;
+                z-index: 1000;
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+                margin-top: 60px;
+                width: 100%;
+                padding: 20px;
+            }
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        .page-header i {
+            margin-right: 10px;
+        }
+        .filter-btn {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 20px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        .filter-btn:hover {
+            background-color: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        /* Class Cards - Updated to match teacherfinal.html */
+        .class-list {
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .class-list > .d-flex {
+            background-color: #800000;
+            padding: 15px;
+            border-radius: 8px;
+            margin: -20px -20px 20px -20px;
+            color: white;
+        }
+
+        .class-list .btn-outline-secondary {
+            color: white;
+            border-color: white;
+            background-color: transparent;
+        }
+
+        .class-list .btn-outline-secondary:hover {
+            color: #800000;
+            background-color: white;
+            border-color: white;
+        }
+
+        .subject-card {
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            background-color: white !important;
+            height: 100%;
+            /* Shadow effects */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 8px;
+        }
+        .subject-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border-color: #800000;
+        }
+        
+        .card-body {
+            padding: 1.25rem;
+            background-color: white;
+        }
+        
+        .student-count-badge {
+            background-color: #800000;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .btn-outline-primary {
+            color: #800000;
+            border-color: #800000;
+            background-color: transparent;
+            transition: all 0.3s ease;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .btn-outline-primary:hover {
+            color: white;
+            background-color: #800000;
+            border-color: #800000;
+        }
+
+        /* Detail View */
+        .detail-view {
+            display: none;
+        }
+        .detail-view.active {
+            display: block;
+        }
+        
+        .back-btn {
+    background-color: transparent; /* Remove white background */
+    color: #6c757d; /* Gray text color */
+    border: 1px solid #6c757d; /* Gray border */
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.back-btn:hover {
+    background-color: #6c757d; /* Gray background on hover */
+    color: white; /* White text on hover */
+    border-color: #6c757d; /* Keep same border color on hover */
+}
+
+.back-btn i {
+    margin-right: 5px;
+}
+
+        /* Grade Management Section */
+        .grade-management-section {
+            display: none;
+        }
+        .grade-management-section.active {
+            display: block;
+        }
+        
+        .grade-header-section {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .grade-header-section h5 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+        
+        .grade-header-section p {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 3px 0 0 0;
+        }
+        
+        /* Compact Filters */
+        .compact-filters {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .compact-filters .form-label {
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .compact-filters .form-label i {
+            color: #800000;
+            font-size: 0.85rem;
+            margin-right: 0.3rem;
+        }
+        
+        .compact-filters .form-control,
+        .compact-filters .form-select {
+            font-size: 0.95rem;
+            padding: 0.625rem 0.875rem;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            width: 100%;
+            height: auto;
+            line-height: 1.5;
+        }
+        
+        .compact-filters .form-control:focus,
+        .compact-filters .form-select:focus {
+            border-color: #800000;
+            box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.15);
+            outline: none;
+        }
+        
+        .compact-filters .btn {
+            font-size: 0.95rem;
+            padding: 0.625rem 1.25rem;
+        }
+        
+        /* Grade Table */
+        .grade-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .grade-table-container table {
+            width: 100%;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        
+        .grade-table-container thead th {
+            background: linear-gradient(135deg, #800000 0%, #a52a2a 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 8px;
+            border: none;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .grade-table-container tbody td {
+            padding: 12px 8px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        
+        .grade-table-container tbody tr {
+            transition: all 0.2s;
+        }
+        
+        .grade-table-container tbody tr:hover {
+            background-color: #fff5f5;
+        }
+        
+        .grade-table-container select {
+            font-size: 0.9rem;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-weight: 400;
+            width: 100%;
+            max-width: 80px;
+            min-width: 80px;
+            background-color: #f8f9fa;
+        }
+        
+        .grade-table-container select:focus {
+            border-color: #800000;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .grade-table-container .student-id-cell {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+        
+        .grade-table-container .student-name-cell {
+            color: #333;
+            font-weight: 400;
+            font-size: 0.95rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+        
+        /* Midterm input field styles - Remove number input arrows */
+        .grade-table-container .midterm-grade-input {
+            font-size: 0.9rem;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-weight: 400;
+            width: 100%;
+            max-width: 80px;
+            min-width: 80px;
+            background-color: white;
+            height: auto;
+            /* Remove number input arrows */
+            -moz-appearance: textfield;
+        }
+        
+        .grade-table-container .midterm-grade-input::-webkit-outer-spin-button,
+        .grade-table-container .midterm-grade-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        .grade-table-container .midterm-grade-input:focus {
+            border-color: #800000;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(128, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        /* Remarks cell styles */
+        .grade-table-container .remarks-cell {
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 12px 8px;
+            text-align: center;
+            color: #333;
+        }
+        
+        .grade-table-container .remarks-cell.status-passed {
+            color: #0f5132;
+        }
+        
+        .grade-table-container .remarks-cell.status-failed {
+            color: #842029;
+        }
+        
+        .grade-table-container .remarks-cell.status-incomplete {
+            color: #856404;
+        }
+        
+        .grade-table-container .remarks-cell.status-drop {
+            color: #6c757d;
+        }
+        
+        /* Action Buttons - Only keep top buttons */
+        .action-buttons-top {
+            display: none;
+            gap: 10px;
+        }
+        
+        .action-buttons-top .btn {
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+        
+        .btn-maroon {
+            background-color: var(--maroon);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 8px 20px;
+        }
+        .btn-maroon:hover {
+            background-color: #a52a2a;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(128, 0, 0, 0.3);
+        }
+        
+        /* No section selected message */
+        #noSectionMessage {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            color: #004085;
+            font-size: 0.95rem;
+        }
+        
+        #noSectionMessage i {
+            color: #0066cc;
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+        .overlay.active {
+            display: block;
+        }
+        
+        /* Mobile specific adjustments */
+        @media (max-width: 991px) {
+            .grade-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .grade-table-container table {
+                min-width: 100%;
+                font-size: 0.85rem;
+            }
+            
+            .grade-table-container thead th {
+                font-size: 0.8rem;
+                padding: 10px 6px;
+            }
+            
+            .grade-table-container tbody td {
+                padding: 10px 6px;
+                font-size: 0.85rem;
+            }
+            
+            .grade-table-container select {
+                font-size: 0.85rem;
+                padding: 4px 6px;
+                max-width: 70px;
+                min-width: 70px;
+            }
+            
+            .grade-table-container .student-name-cell {
+                font-size: 0.85rem;
+                max-width: 100px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .grade-table-container .midterm-grade-input {
+                font-size: 0.85rem;
+                padding: 4px 6px;
+                max-width: 70px;
+            }
+            
+            .grade-table-container .remarks-cell {
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Desktop adjustments */
+        @media (min-width: 992px) {
+            .grade-table-container table {
+                font-size: 0.95rem;
+            }
+            
+            .grade-table-container thead th {
+                font-size: 0.9rem;
+                padding: 12px 10px;
+            }
+            
+            .grade-table-container tbody td {
+                padding: 12px 10px;
+                font-size: 0.95rem;
+            }
+            
+            .grade-table-container select {
+                font-size: 0.9rem;
+                padding: 6px 10px;
+                min-width: 90px;
+                max-width: 90px;
+            }
+            
+            .grade-table-container .student-name-cell {
+                font-size: 0.95rem;
+            }
+            
+            .grade-table-container .midterm-grade-input {
+                font-size: 0.9rem;
+                padding: 6px 10px;
+                min-width: 90px;
+            }
+            
+            .grade-table-container .remarks-cell {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <div class="mobile-header">
+        <div class="header-content">
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="header-title">Enverga University Candelaria</h1>
+        </div>
+    </div>
+
+    <nav class="sidebar" id="sidebar">
+        <img src="/images/mseuflogo.png" alt="MSEUF Candelaria Logo" class="sidebar-logo">
+        <div class="university-name">MANUEL S. ENVERGA UNIVERSITY FOUNDATION CANDELARIA INC.</div>
+        <hr style="border-color: rgba(255,255,255,0.3); margin: 10px 15px;" />
+        <a href="/html/teacher.html" class="nav-link active"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
+        <a href="/html/grademanagement.html" class="nav-link"><i class="fas fa-chart-line mr-2"></i> Grade Management</a>
+        <a href="/html/teacherannouncements.html"><i class="fas fa-bullhorn"></i> Announcements</a>
+        <a href="/html/leaderboards.html" class="nav-link"><i class="fas fa-trophy mr-2"></i> Leaderboards</a>
+        <a href="/html/teacherprofile.html" class="nav-link"><i class="fas fa-user mr-2"></i> Profile</a>
+        <a href="#" onclick="logout();"><i class="fas fa-sign-out-alt mr-2"></i> Logout</a>
+    </nav>
+
+    <main class="main-content">
+        <!-- Classes List View -->
+        <div id="classes-list-view" class="classes-view">
+            <!-- Class List View - Updated to match teacherfinal.html -->
+            <div class="class-list">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0 text-white"><i class="fas fa-book mr-2"></i> My Classes</h2>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="schoolYearFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="schoolYearFilterDropdown">
+                            <li><a class="dropdown-item active" href="#" onclick="setActiveFilter('all'); return false;">All School Years</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setActiveFilter('2024-2025'); return false;">2024 - 2025</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setActiveFilter('2023-2024'); return false;">2023 - 2024</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setActiveFilter('2022-2023'); return false;">2022 - 2023</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setActiveFilter('2021-2022'); return false;">2021 - 2022</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Class Cards Grid -->
+                <div class="row" id="classCardsContainer">
+                    <!-- Loading message -->
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-maroon" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading your classes...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail View (Hidden by default) -->
+        <div id="class-detail-view" class="detail-view">
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                    <button class="btn btn-outline-secondary btn-sm back-btn" onclick="backToClasses()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <div class="d-flex gap-2 action-buttons-top" id="actionButtonsTop">
+                        <button class="btn btn-secondary btn-sm" id="exportBtn" onclick="exportGrades()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-maroon btn-sm" onclick="submitGrades()">
+                            <i class="fas fa-paper-plane"></i> Submit
+                        </button>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h2 class="mb-2 dashboard-title">
+                        <i class="fas fa-book text-dark me-2"></i><span id="class-title">Loading...</span>
+                    </h2>
+                    <p class="text-muted" style="margin-left: 0;">
+                        <i class="fas fa-graduation-cap me-1"></i> <span id="subject-unit">--</span> Units
+                        &nbsp; | &nbsp;
+                        <i class="fas fa-users me-1"></i><span id="student-count">0</span> Students Enrolled
+                    </p>
+                </div>
+            </div>
+
+            <!-- Compact Filters -->
+            <div class="compact-filters">
+                <div class="row g-3">
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">
+                            <i class="fas fa-search"></i> Search
+                        </label>
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="Search by Name or ID..." 
+                               onkeyup="filterStudents()" disabled>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">
+                            <i class="fas fa-users"></i> Section
+                        </label>
+                        <select class="form-select" id="sectionFilter" onchange="onSectionChange()">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-alt"></i> School Year
+                        </label>
+                        <input type="text" class="form-control" id="schoolYearDisplay" readonly 
+                               placeholder="--" style="background-color: #f8f9fa;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message when no section selected -->
+            <div class="alert alert-info text-center" id="noSectionMessage">
+                <i class="fas fa-info-circle me-2"></i>
+                Please select a section to view and manage grades
+            </div>
+
+            <!-- Grade Table (Mobile & Desktop) - Hidden initially -->
+            <div class="grade-table-container" id="gradeTableContainer" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Midterm</th>
+                                <th>Final</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gradeTableBody">
+                            <!-- Will be populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="/javaScript/grademanagement.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("overlay");
+            sidebar.classList.toggle("active");
+            overlay.classList.toggle("active");
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("overlay");
+            sidebar.classList.remove("active");
+            overlay.classList.remove("active");
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedInUser");
+            window.location.href = "login.html";
+        }
+        
+        // Update the displayClassCards function to use the new card design
+        function displayClassCards(classes) {
+            const container = document.getElementById('classCardsContainer');
+            
+            if (!classes || classes.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No classes assigned yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            const groupedClasses = {};
+            classes.forEach(cls => {
+                const key = `${cls.subject_code}-${cls.subject_name}`;
+                if (!groupedClasses[key]) {
+                    groupedClasses[key] = {
+                        subject_id: cls.subject_id,
+                        subject_code: cls.subject_code,
+                        subject_name: cls.subject_name,
+                        total_students: 0,
+                        sections: []
+                    };
+                }
+                groupedClasses[key].total_students += parseInt(cls.student_count) || 0;
+                groupedClasses[key].sections.push(cls.sectionCode);
+            });
+
+            Object.values(groupedClasses).forEach(classData => {
+                const card = `
+                    <div class="col-md-4 col-sm-6 mb-4">
+                        <div class="subject-card card h-100" data-year="2024-2025">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <span class="student-count-badge">
+                                        <i class="fas fa-users me-1"></i> ${classData.total_students} Students
+                                    </span>
+                                </div>
+                                <h4 class="card-title mb-3">${classData.subject_code} - ${classData.subject_name}</h4>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="text-muted small">
+                                        <i class="fas fa-layer-group me-1"></i> ${classData.sections.length} Section(s)
+                                    </span>
+                                    <button class="btn btn-sm btn-outline-primary view-class-btn" onclick="showClassDetail(${classData.subject_id}, '${classData.subject_code} - ${classData.subject_name}', ${classData.total_students})">
+                                        <i class="fas fa-arrow-right"></i> View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += card;
+            });
+        }
+        
+        // Update the showClassDetail function to show action buttons
+        function showClassDetail(subjectId, subjectName, studentCount) {
+            currentSubjectId = subjectId;
+            currentSubjectName = subjectName;
+            
+            const classesView = document.getElementById('classes-list-view');
+            const detailView = document.getElementById('class-detail-view');
+            
+            classesView.style.display = 'none';
+            detailView.classList.add('active');
+            
+            document.getElementById('class-title').textContent = subjectName;
+            document.getElementById('student-count').textContent = studentCount;
+            
+            // Fetch and display subject unit
+            loadSubjectUnit(subjectId);
+            
+            loadSections(subjectId);
+            
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchInput').disabled = true;
+            document.getElementById('schoolYearDisplay').value = '--';
+            document.getElementById('noSectionMessage').style.display = 'block';
+            document.getElementById('gradeTableContainer').style.display = 'none';
+            document.getElementById('actionButtonsTop').style.display = 'none';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Update the onSectionChange function to show action buttons
+        function onSectionChange() {
+            const sectionFilter = document.getElementById('sectionFilter');
+            const selectedOption = sectionFilter.options[sectionFilter.selectedIndex];
+            const yearLevel = selectedOption.getAttribute('data-year');
+            const schoolYearDisplay = document.getElementById('schoolYearDisplay');
+            const searchInput = document.getElementById('searchInput');
+            const noSectionMessage = document.getElementById('noSectionMessage');
+            const gradeTableContainer = document.getElementById('gradeTableContainer');
+            const actionButtonsTop = document.getElementById('actionButtonsTop');
+            
+            if (sectionFilter.value) {
+                currentSectionCode = sectionFilter.value;
+                schoolYearDisplay.value = '2024-2025';
+                searchInput.disabled = false;
+                noSectionMessage.style.display = 'none';
+                actionButtonsTop.style.display = 'flex';
+                
+                loadSectionGrades(currentSubjectId, currentSectionCode);
+            } else {
+                currentSectionCode = null;
+                schoolYearDisplay.value = '--';
+                searchInput.disabled = true;
+                searchInput.value = '';
+                noSectionMessage.style.display = 'block';
+                gradeTableContainer.style.display = 'none';
+                actionButtonsTop.style.display = 'none';
+            }
+        }
+        
+        // Update the backToClasses function to hide action buttons
+        function backToClasses() {
+            const classesView = document.getElementById('classes-list-view');
+            const detailView = document.getElementById('class-detail-view');
+            
+            detailView.classList.remove('active');
+            classesView.style.display = 'block';
+            
+            currentSubjectId = null;
+            currentSubjectName = null;
+            currentSectionCode = null;
+            studentGrades = [];
+            currentSubjectUnit = 0;
+            
+            document.getElementById('sectionFilter').innerHTML = '<option value="">-- Select Section --</option>';
+            document.getElementById('schoolYearDisplay').value = '--';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchInput').disabled = true;
+            document.getElementById('subject-unit').textContent = '--';
+            document.getElementById('noSectionMessage').style.display = 'block';
+            document.getElementById('gradeTableContainer').style.display = 'none';
+            document.getElementById('actionButtonsTop').style.display = 'none';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Update the displayGradeTable function to use the new table design
+        function displayGradeTable(students, encode, final_encode) {
+            const tbody = document.getElementById('gradeTableBody');
+            const gradeTableContainer = document.getElementById('gradeTableContainer');
+            
+            const canEditMidterm = encode === 'on';
+            const canEditFinal = final_encode === 'on';
+            
+            if (!students || students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <i class="fas fa-users-slash fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No students enrolled in this section.</p>
+                        </td>
+                    </tr>
+                `;
+                gradeTableContainer.style.display = 'block';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            
+            students.forEach(student => {
+                const midtermGrade = student.midterm_grade || '';
+                const finalGrade = student.final_grade || '';
+                
+                let remarksText = 'Incomplete';
+                let remarksClass = 'status-incomplete';
+                
+                if (finalGrade) {
+                    if (finalGrade === 'INC') {
+                        remarksText = 'Incomplete';
+                        remarksClass = 'status-incomplete';
+                    } else if (parseFloat(finalGrade) >= 5.00 || finalGrade === '0') {
+                        remarksText = 'Failed';
+                        remarksClass = 'status-failed';
+                    } else {
+                        remarksText = 'Passed';
+                        remarksClass = 'status-passed';
+                    }
+                }
+                
+                const row = `
+                    <tr data-student-id="${student.studentUser_id}" data-grade-id="${student.grade_id || ''}">
+                        <td class="student-id-cell">${student.student_id}</td>
+                        <td class="student-name-cell">${student.student_name}</td>
+                        <td>
+                            <input type="number" 
+                                   class="form-control midterm-grade-input" 
+                                   value="${midtermGrade}" 
+                                   placeholder="${canEditMidterm ? '0-100' : 'Encoding disabled'}"
+                                   min="0" 
+                                   max="100"
+                                   step="0.01"
+                                   ${canEditMidterm ? '' : 'readonly'}
+                                   style="${canEditMidterm ? '' : 'background-color: #e9ecef; cursor: not-allowed;'}">
+                        </td>
+                        <td>
+                            <select class="form-select final-grade" onchange="updateRemarks(this)" ${canEditFinal ? '' : 'disabled'} style="${canEditFinal ? '' : 'background-color: #e9ecef; cursor: not-allowed;'}">
+                                <option value="">--</option>
+                                <option value="1.00" ${finalGrade === '1.00' ? 'selected' : ''}>1.00</option>
+                                <option value="1.25" ${finalGrade === '1.25' ? 'selected' : ''}>1.25</option>
+                                <option value="1.50" ${finalGrade === '1.50' ? 'selected' : ''}>1.50</option>
+                                <option value="1.75" ${finalGrade === '1.75' ? 'selected' : ''}>1.75</option>
+                                <option value="2.00" ${finalGrade === '2.00' ? 'selected' : ''}>2.00</option>
+                                <option value="2.25" ${finalGrade === '2.25' ? 'selected' : ''}>2.25</option>
+                                <option value="2.50" ${finalGrade === '2.50' ? 'selected' : ''}>2.50</option>
+                                <option value="2.75" ${finalGrade === '2.75' ? 'selected' : ''}>2.75</option>
+                                <option value="3.00" ${finalGrade === '3.00' ? 'selected' : ''}>3.00</option>
+                                <option value="5.00" ${finalGrade === '5.00' ? 'selected' : ''}>5.00</option>
+                                <option value="0" ${finalGrade === '0' ? 'selected' : ''}>0</option>
+                                <option value="INC" ${finalGrade === 'INC' ? 'selected' : ''}>INC</option>
+                            </select>
+                        </td>
+                        <td class="remarks-cell ${remarksClass}">${remarksText}</td>
+                    </tr>
+                `;
+                
+                tbody.innerHTML += row;
+            });
+            
+            const submitBtn = document.querySelector('#actionButtonsTop button[onclick="submitGrades()"]');
+            if (submitBtn) {
+                submitBtn.disabled = !canEditMidterm && !canEditFinal;
+                if (!canEditMidterm && !canEditFinal) {
+                    submitBtn.style.cursor = 'not-allowed';
+                    submitBtn.style.opacity = '0.6';
+                }
+            }
+            
+            gradeTableContainer.style.display = 'block';
+        }
+        
+        // Override the global functions
+        window.displayClassCards = displayClassCards;
+        window.showClassDetail = showClassDetail;
+        window.onSectionChange = onSectionChange;
+        window.backToClasses = backToClasses;
+        window.displayGradeTable = displayGradeTable;
+    </script>
+</body>
+</html>
