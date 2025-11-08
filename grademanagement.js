@@ -261,6 +261,9 @@ function loadSectionGrades(subjectId, sectionCode) {
     const teacherId = loggedInUser.teacher_id;
     const link = `http://localhost:3000/teacher/section-grades/${teacherId}/${subjectId}/${sectionCode}`;
 
+    console.log('=== FETCHING GRADES FROM API ===');
+    console.log('URL:', link);
+
     fetch(link, { mode: "cors" })
         .then((response) => {
             if (!response.ok) {
@@ -269,11 +272,29 @@ function loadSectionGrades(subjectId, sectionCode) {
             return response.json();
         })
         .then((data) => {
+            console.log('=== RAW API RESPONSE ===');
+            console.log('Full response:', data);
+            
             const { students, encode, final_encode } = data;
             studentGrades = students;
-            if (students && students.length > 0 && students[0].semester) {
-                currentSemester = students[0].semester;
+            
+            if (students && students.length > 0) {
+                console.log('=== STUDENT GRADES DETAILS ===');
+                students.forEach((student, index) => {
+                    console.log(`Student ${index + 1}:`, {
+                        name: student.student_name,
+                        final_grade: student.final_grade,
+                        type: typeof student.final_grade,
+                        midterm_grade: student.midterm_grade,
+                        grade_id: student.grade_id
+                    });
+                });
+                
+                if (students[0].semester) {
+                    currentSemester = students[0].semester;
+                }
             }
+            
             displayGradeTable(students, encode, final_encode);
         })
         .catch((error) => {
@@ -306,23 +327,52 @@ function displayGradeTable(students, encode, final_encode) {
     
     students.forEach(student => {
         const midtermGrade = student.midterm_grade || '';
-        const finalGrade = student.final_grade || '';
+        const finalGrade = student.final_grade;
         
+        console.log('Processing student:', student.student_name, 'Final grade:', finalGrade, 'Type:', typeof finalGrade);
+        
+        // Handle the final grade value for display - FIXED LOGIC
+        let selectedValue = '';
         let remarksText = 'Incomplete';
         let remarksClass = 'status-incomplete';
         
-        if (finalGrade) {
-            if (finalGrade === 'INC') {
+        if (finalGrade !== null && finalGrade !== undefined && finalGrade !== '') {
+            // Convert to string for consistent comparison
+            const finalGradeStr = finalGrade.toString();
+            
+            console.log('Final grade as string:', finalGradeStr);
+            
+            // Set the selected value for dropdown - FIXED: Handle 0 properly
+            if (finalGradeStr === '0' || finalGradeStr === '0.00' || finalGradeStr === '0.0') {
+                selectedValue = '0';
+                remarksText = 'Dropped';
+                remarksClass = 'status-drop';
+            } else if (finalGradeStr === '6.00' || finalGradeStr === '6' || finalGradeStr === 'INC') {
+                selectedValue = '6.00';
                 remarksText = 'Incomplete';
                 remarksClass = 'status-incomplete';
-            } else if (parseFloat(finalGrade) >= 5.00 || finalGrade === '0') {
+            } else if (parseFloat(finalGradeStr) >= 5.00) {
+                selectedValue = parseFloat(finalGradeStr).toFixed(2);
                 remarksText = 'Failed';
                 remarksClass = 'status-failed';
-            } else {
+            } else if (!isNaN(parseFloat(finalGradeStr))) {
+                selectedValue = parseFloat(finalGradeStr).toFixed(2);
                 remarksText = 'Passed';
                 remarksClass = 'status-passed';
+            } else {
+                selectedValue = finalGradeStr;
+                remarksText = 'Incomplete';
+                remarksClass = 'status-incomplete';
             }
+        } else {
+            // No final grade set
+            selectedValue = '';
+            remarksText = 'Incomplete';
+            remarksClass = 'status-incomplete';
         }
+        
+        console.log('Selected value for dropdown:', selectedValue);
+        console.log('Remarks:', remarksText);
         
         const row = `
             <tr data-student-id="${student.studentUser_id}" data-grade-id="${student.grade_id || ''}">
@@ -342,18 +392,18 @@ function displayGradeTable(students, encode, final_encode) {
                 <td>
                     <select class="form-select final-grade" onchange="updateRemarks(this)" ${canEditFinal ? '' : 'disabled'} style="${canEditFinal ? '' : 'background-color: #e9ecef; cursor: not-allowed;'}">
                         <option value="">--</option>
-                        <option value="1.00" ${finalGrade === '1.00' ? 'selected' : ''}>1.00</option>
-                        <option value="1.25" ${finalGrade === '1.25' ? 'selected' : ''}>1.25</option>
-                        <option value="1.50" ${finalGrade === '1.50' ? 'selected' : ''}>1.50</option>
-                        <option value="1.75" ${finalGrade === '1.75' ? 'selected' : ''}>1.75</option>
-                        <option value="2.00" ${finalGrade === '2.00' ? 'selected' : ''}>2.00</option>
-                        <option value="2.25" ${finalGrade === '2.25' ? 'selected' : ''}>2.25</option>
-                        <option value="2.50" ${finalGrade === '2.50' ? 'selected' : ''}>2.50</option>
-                        <option value="2.75" ${finalGrade === '2.75' ? 'selected' : ''}>2.75</option>
-                        <option value="3.00" ${finalGrade === '3.00' ? 'selected' : ''}>3.00</option>
-                        <option value="5.00" ${finalGrade === '5.00' ? 'selected' : ''}>5.00</option>
-                        <option value="0" ${finalGrade === '0' ? 'selected' : ''}>0</option>
-                        <option value="INC" ${finalGrade === 'INC' ? 'selected' : ''}>INC</option>
+                        <option value="1.00" ${selectedValue === '1.00' ? 'selected' : ''}>1.00</option>
+                        <option value="1.25" ${selectedValue === '1.25' ? 'selected' : ''}>1.25</option>
+                        <option value="1.50" ${selectedValue === '1.50' ? 'selected' : ''}>1.50</option>
+                        <option value="1.75" ${selectedValue === '1.75' ? 'selected' : ''}>1.75</option>
+                        <option value="2.00" ${selectedValue === '2.00' ? 'selected' : ''}>2.00</option>
+                        <option value="2.25" ${selectedValue === '2.25' ? 'selected' : ''}>2.25</option>
+                        <option value="2.50" ${selectedValue === '2.50' ? 'selected' : ''}>2.50</option>
+                        <option value="2.75" ${selectedValue === '2.75' ? 'selected' : ''}>2.75</option>
+                        <option value="3.00" ${selectedValue === '3.00' ? 'selected' : ''}>3.00</option>
+                        <option value="5.00" ${selectedValue === '5.00' ? 'selected' : ''}>5.00</option>
+                        <option value="6.00" ${selectedValue === '6.00' ? 'selected' : ''}>6.00</option>
+                        <option value="0" ${selectedValue === '0' ? 'selected' : ''}>0</option>
                     </select>
                 </td>
                 <td class="remarks-cell ${remarksClass}">${remarksText}</td>
@@ -374,18 +424,20 @@ function displayGradeTable(students, encode, final_encode) {
     
     gradeTableContainer.style.display = 'block';
 }
-
 function updateRemarks(selectElement) {
     const row = selectElement.closest('tr');
     const remarksCell = row.querySelector('.remarks-cell');
     const gradeValue = selectElement.value;
 
-    remarksCell.classList.remove('status-passed', 'status-failed', 'status-incomplete');
+    remarksCell.classList.remove('status-passed', 'status-failed', 'status-incomplete', 'status-drop');
 
-    if (gradeValue === '' || gradeValue === 'INC') {
+    if (gradeValue === '' || gradeValue === '6.00') {
         remarksCell.textContent = 'Incomplete';
         remarksCell.classList.add('status-incomplete');
-    } else if (parseFloat(gradeValue) >= 5.00 || gradeValue === '0') {
+    } else if (gradeValue === '0') {
+        remarksCell.textContent = 'Dropped';
+        remarksCell.classList.add('status-drop');
+    } else if (parseFloat(gradeValue) >= 5.00) {
         remarksCell.textContent = 'Failed';
         remarksCell.classList.add('status-failed');
     } else {
@@ -404,26 +456,43 @@ function submitGrades() {
     let hasEmpty = false;
     const gradesToSubmit = [];
 
+    console.log('=== SUBMITTING GRADES ===');
+
     rows.forEach(row => {
         const studentId = row.getAttribute('data-student-id');
         const gradeId = row.getAttribute('data-grade-id');
         const midterm = row.querySelector('.midterm-grade-input').value;
         const final = row.querySelector('.final-grade').value;
 
+        console.log('Student ID:', studentId, 'Final grade selected:', final);
+
         if (!midterm || midterm === "" || !final || final === "") {
             hasEmpty = true;
+            console.log('Empty grade found for student:', studentId);
         } else {
+            // Convert final grade to proper format for database
+            let finalGradeValue;
+            if (final === '6.00') {
+                finalGradeValue = 6.00;
+            } else if (final === '0') {
+                finalGradeValue = 0;
+            } else {
+                finalGradeValue = parseFloat(final);
+            }
+
             gradesToSubmit.push({
                 studentUser_id: parseInt(studentId),
                 subject_id: currentSubjectId,
                 teacher_id: loggedInUser.teacher_id,
                 midterm_grade: parseFloat(midterm),
-                final_grade: final === 'INC' ? 'INC' : parseFloat(final),
+                final_grade: finalGradeValue,
                 academic_year: '2024-2025',
                 semester: '1st'
             });
         }
     });
+
+    console.log('Grades to submit:', gradesToSubmit);
 
     if (hasEmpty) {
         if (!confirm("Some students have incomplete grades. Do you want to submit the grades anyway?")) {
@@ -440,9 +509,14 @@ function submitGrades() {
     })
     .then(response => response.json())
     .then(data => {
+        console.log('Submit response:', data);
         if (data.success) {
             alert(`Grades submitted successfully! ${data.successCount} grade(s) updated.`);
-            loadSectionGrades(currentSubjectId, currentSectionCode);
+            // Reload the data to see what's actually in the database
+            setTimeout(() => {
+                console.log('Reloading grades after submit...');
+                loadSectionGrades(currentSubjectId, currentSectionCode);
+            }, 1000);
         } else {
             alert(`Some grades failed to update. ${data.successCount} grade(s) were successful.`);
         }
